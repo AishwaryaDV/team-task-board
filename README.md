@@ -79,9 +79,8 @@ All mutating endpoints support `?fail=true` to simulate a 500 error.
 
 - **Database**: Replace in-memory store with SQLite (via better-sqlite3) or PostgreSQL for persistence.
 - **Drag and drop**: Use a library like `@dnd-kit` for dragging cards between columns instead of a dropdown.
-- **Tests**: Add Vitest unit tests for the backend validation/store logic, and React Testing Library tests for the optimistic UI behavior.
-- **Debounced search**: Add a text search input with debouncing for filtering tasks.
+- **More test coverage**: Add tests for optimistic UI rollback behavior and the TaskBoard integration with mocked API calls.
 - **Error boundaries**: Add a React error boundary component for unexpected rendering errors.
 - **Loading skeletons**: Replace the spinner with skeleton cards that match the layout.
-- **Accessibility**: Full keyboard navigation for the board, ARIA live regions for optimistic update announcements.
 - **Race condition handling**: Add request cancellation (AbortController) to prevent stale responses from overwriting newer state.
+- **E2E tests**: Add Playwright or Cypress tests for full user flows.
