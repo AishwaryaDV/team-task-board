@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Task, TaskStatus } from "@/types/task";
+import { Task, TaskStatus, CreateTaskInput } from "@/types/task";
 import * as api from "@/lib/api";
 import TaskColumn from "./TaskColumn";
+import TaskForm from "./TaskForm";
 
 const STATUSES: TaskStatus[] = ["todo", "in_progress", "done"];
 
@@ -27,6 +28,11 @@ export default function TaskBoard() {
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+
+  const handleCreate = useCallback(async (input: CreateTaskInput) => {
+    const task = await api.createTask(input);
+    setTasks((prev) => [...prev, task]);
+  }, []);
 
   const handleStatusChange = useCallback(
     async (taskId: string, newStatus: TaskStatus) => {
@@ -70,6 +76,10 @@ export default function TaskBoard() {
 
   return (
     <div>
+      <div className="mb-6">
+        <TaskForm onSubmit={handleCreate} />
+      </div>
+
       {error && (
         <div
           className="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
