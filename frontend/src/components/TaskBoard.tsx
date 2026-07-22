@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Task, TaskStatus, CreateTaskInput } from "@/types/task";
+import { Task, TaskStatus, CreateTaskInput, UpdateTaskInput } from "@/types/task";
 import * as api from "@/lib/api";
 import TaskColumn from "./TaskColumn";
 import TaskForm from "./TaskForm";
@@ -47,6 +47,17 @@ export default function TaskBoard() {
     setTasks((prev) => [...prev, task]);
     announce(`Task "${task.title}" created`);
   }, []);
+
+  const handleEdit = useCallback(
+    async (taskId: string, input: UpdateTaskInput) => {
+      const updated = await api.updateTask(taskId, input);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? updated : t))
+      );
+      announce(`Task "${updated.title}" updated`);
+    },
+    []
+  );
 
   const handleStatusChange = useCallback(
     async (taskId: string, newStatus: TaskStatus) => {
@@ -163,6 +174,7 @@ export default function TaskBoard() {
             status={status}
             tasks={filteredTasks.filter((t) => t.status === status)}
             onStatusChange={handleStatusChange}
+            onEdit={handleEdit}
             onDelete={handleDelete}
           />
         ))}

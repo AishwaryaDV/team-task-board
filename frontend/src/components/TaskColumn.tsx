@@ -1,4 +1,4 @@
-import { Task, TaskStatus } from "@/types/task";
+import { Task, TaskStatus, UpdateTaskInput } from "@/types/task";
 import TaskCard from "./TaskCard";
 
 const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string }> = {
@@ -11,6 +11,7 @@ interface TaskColumnProps {
   status: TaskStatus;
   tasks: Task[];
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
+  onEdit: (taskId: string, input: UpdateTaskInput) => Promise<void>;
   onDelete: (taskId: string) => void;
 }
 
@@ -18,6 +19,7 @@ export default function TaskColumn({
   status,
   tasks,
   onStatusChange,
+  onEdit,
   onDelete,
 }: TaskColumnProps) {
   const config = STATUS_CONFIG[status];
@@ -42,6 +44,7 @@ export default function TaskColumn({
             <TaskCard
               task={task}
               onStatusChange={onStatusChange}
+              onEdit={onEdit}
               onDelete={onDelete}
             />
           </div>
