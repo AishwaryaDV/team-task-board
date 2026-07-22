@@ -12,18 +12,17 @@ import { validateCreateTask, validateUpdateTask } from "../middleware/validate";
 const router = Router();
 
 router.get("/", (req, res) => {
-  const { status, assignee } = req.query;
+  const status = typeof req.query.status === "string" ? req.query.status : undefined;
+  const assignee = typeof req.query.assignee === "string" ? req.query.assignee : undefined;
 
   const tasks =
-    status || assignee
-      ? filterTasks(status as string | undefined, assignee as string | undefined)
-      : getAllTasks();
+    status || assignee ? filterTasks(status, assignee) : getAllTasks();
 
   res.json(tasks);
 });
 
 router.get("/:id", (req, res) => {
-  const task = getTaskById(req.params.id);
+  const task = getTaskById(req.params.id as string);
   if (!task) {
     res.status(404).json({ error: "Task not found" });
     return;
@@ -47,7 +46,7 @@ router.patch("/:id", validateUpdateTask, (req, res) => {
     return;
   }
 
-  const task = updateTask(req.params.id, req.body);
+  const task = updateTask(req.params.id as string, req.body);
   if (!task) {
     res.status(404).json({ error: "Task not found" });
     return;
@@ -61,7 +60,7 @@ router.delete("/:id", (req, res) => {
     return;
   }
 
-  const deleted = deleteTask(req.params.id);
+  const deleted = deleteTask(req.params.id as string);
   if (!deleted) {
     res.status(404).json({ error: "Task not found" });
     return;
