@@ -62,14 +62,11 @@ describe("TaskCard", () => {
     expect(onStatusChange).toHaveBeenCalledWith("1", "done");
   });
 
-  it("has correct aria-label on the article element", () => {
+  it("has correct aria-label on the card element", () => {
     render(
       <TaskCard task={mockTask} onStatusChange={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />
     );
 
-    expect(screen.getByRole("article")).toHaveAttribute(
-      "aria-label",
-      "Task: Test Task"
-    );
+    expect(screen.getByLabelText("Task: Test Task")).toBeInTheDocument();
   });
 });
