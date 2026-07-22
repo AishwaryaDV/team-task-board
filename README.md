@@ -17,22 +17,35 @@ cd frontend && npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to use the app.
 
+### Running Tests
+
+```bash
+# Backend tests (15 integration tests)
+cd backend && npm test
+
+# Frontend tests (9 unit tests)
+cd frontend && npm test
+```
+
 ## Project Structure
 
 ```
 team-task-board/
 ├── backend/                # Express.js REST API (TypeScript)
 │   └── src/
+│       ├── app.ts          # Express app setup (exported for testing)
 │       ├── index.ts        # Server entry point (port 4000)
 │       ├── models/task.ts  # Task type + in-memory store with CRUD
 │       ├── routes/tasks.ts # API route handlers
-│       └── middleware/     # Input validation
+│       ├── middleware/     # Input validation
+│       └── __tests__/      # API integration tests (supertest)
 ├── frontend/               # Next.js App Router (TypeScript)
 │   └── src/
 │       ├── app/            # Next.js pages and layout
 │       ├── components/     # React components (TaskBoard, TaskCard, etc.)
-│       ├── lib/api.ts      # API client functions
-│       └── types/task.ts   # Shared TypeScript types
+│       ├── lib/            # API client, useDebounce hook
+│       ├── types/task.ts   # Shared TypeScript types
+│       └── __tests__/      # Component and hook unit tests
 └── README.md
 ```
 
@@ -48,8 +61,11 @@ team-task-board/
 - **Next.js 16 with App Router** — as requested. The page is a Server Component that renders the `TaskBoard` Client Component.
 - **Client Components for interactivity** — the board, cards, form, and filter all need state/effects, so they use `"use client"`.
 - **Tailwind CSS v4** — fast to build a usable UI without writing custom CSS.
+- **Drag and drop (@dnd-kit)** — cards can be dragged between status columns. Uses `useDraggable` on cards and `useDroppable` on columns. Dropping triggers the same optimistic status change as the dropdown.
 - **No state management library** — React `useState` + `useCallback` + `useMemo` is sufficient for this scope. Context or Zustand would add complexity without benefit here.
-- **Optimistic UI updates** — status changes and deletions update the UI immediately, then call the API. On failure, the previous state is restored and an error message is shown. This is the core "tricky" requirement.
+- **Optimistic UI updates** — status changes (via dropdown or drag) and deletions update the UI immediately, then call the API. On failure, the previous state is restored and an error message is shown.
+- **Debounced search** — search input filters tasks by title/description with a 300ms debounce to avoid filtering on every keystroke.
+- **Accessibility** — skip-to-content link, ARIA live region for screen reader announcements, semantic HTML, visible focus rings, keyboard delete support.
 
 ### Monorepo
 - Separate `frontend/` and `backend/` directories with independent `package.json` files. No monorepo tooling (Turborepo, Nx) — overkill for two projects.
@@ -58,7 +74,7 @@ team-task-board/
 
 1. Create a few tasks with different assignees
 2. Check the **"Simulate API failure"** checkbox
-3. Try changing a task's status via the dropdown — it will move to the new column instantly, then snap back with an error message
+3. Try changing a task's status via the dropdown or by dragging it to another column — it will move instantly, then snap back with an error message
 4. Try deleting a task — it will disappear, then reappear with an error message
 5. Uncheck the checkbox to resume normal operation
 
@@ -78,7 +94,6 @@ All mutating endpoints support `?fail=true` to simulate a 500 error.
 ## What I'd Do Differently With More Time
 
 - **Database**: Replace in-memory store with SQLite (via better-sqlite3) or PostgreSQL for persistence.
-- **Drag and drop**: Use a library like `@dnd-kit` for dragging cards between columns instead of a dropdown.
 - **More test coverage**: Add tests for optimistic UI rollback behavior and the TaskBoard integration with mocked API calls.
 - **Error boundaries**: Add a React error boundary component for unexpected rendering errors.
 - **Loading skeletons**: Replace the spinner with skeleton cards that match the layout.
