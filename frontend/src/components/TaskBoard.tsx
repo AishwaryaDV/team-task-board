@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Task, TaskStatus, CreateTaskInput } from "@/types/task";
 import * as api from "@/lib/api";
 import TaskColumn from "./TaskColumn";
 import TaskForm from "./TaskForm";
+import FilterBar from "./FilterBar";
 
 const STATUSES: TaskStatus[] = ["todo", "in_progress", "done"];
 
@@ -12,6 +13,8 @@ export default function TaskBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [assigneeFilter, setAssigneeFilter] = useState("");
+  const [simulateFailure, setSimulateFailure] = useState(false);
 
   const loadTasks = useCallback(async () => {
     try {
@@ -42,13 +45,13 @@ export default function TaskBoard() {
       );
 
       try {
-        await api.updateTask(taskId, { status: newStatus });
+        await api.updateTask(taskId, { status: newStatus }, simulateFailure);
       } catch {
         setTasks(previous);
         setError("Failed to update task status. Change has been reverted.");
       }
     },
-    [tasks]
+    [tasks, simulateFailure]
   );
 
   const handleDelete = useCallback(
@@ -57,14 +60,21 @@ export default function TaskBoard() {
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
 
       try {
-        await api.deleteTask(taskId);
+        await api.deleteTask(taskId, simulateFailure);
       } catch {
         setTasks(previous);
         setError("Failed to delete task. It has been restored.");
       }
     },
-    [tasks]
+    [tasks, simulateFailure]
   );
+
+  const filteredTasks = useMemo(() => {
+    if (!assigneeFilter) return tasks;
+    return tasks.filter(
+      (t) => t.assignee.toLowerCase() === assigneeFilter.toLowerCase()
+    );
+  }, [tasks, assigneeFilter]);
 
   if (loading) {
     return (
@@ -76,8 +86,15 @@ export default function TaskBoard() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <TaskForm onSubmit={handleCreate} />
+        <FilterBar
+          tasks={tasks}
+          selectedAssignee={assigneeFilter}
+          onAssigneeChange={setAssigneeFilter}
+          simulateFailure={simulateFailure}
+          onSimulateFailureChange={setSimulateFailure}
+        />
       </div>
 
       {error && (
@@ -100,7 +117,7 @@ export default function TaskBoard() {
           <TaskColumn
             key={status}
             status={status}
-            tasks={tasks.filter((t) => t.status === status)}
+            tasks={filteredTasks.filter((t) => t.status === status)}
             onStatusChange={handleStatusChange}
             onDelete={handleDelete}
           />
