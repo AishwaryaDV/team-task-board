@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Task, TaskStatus, CreateTaskInput } from "@/types/task";
 import * as api from "@/lib/api";
 import TaskColumn from "./TaskColumn";
@@ -15,6 +15,13 @@ export default function TaskBoard() {
   const [error, setError] = useState<string | null>(null);
   const [assigneeFilter, setAssigneeFilter] = useState("");
   const [simulateFailure, setSimulateFailure] = useState(false);
+  const liveRegionRef = useRef<HTMLDivElement>(null);
+
+  const announce = (message: string) => {
+    if (liveRegionRef.current) {
+      liveRegionRef.current.textContent = message;
+    }
+  };
 
   const loadTasks = useCallback(async () => {
     try {
@@ -35,20 +42,25 @@ export default function TaskBoard() {
   const handleCreate = useCallback(async (input: CreateTaskInput) => {
     const task = await api.createTask(input);
     setTasks((prev) => [...prev, task]);
+    announce(`Task "${task.title}" created`);
   }, []);
 
   const handleStatusChange = useCallback(
     async (taskId: string, newStatus: TaskStatus) => {
       const previous = tasks;
+      const task = tasks.find((t) => t.id === taskId);
       setTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
       );
+      announce(`Task "${task?.title}" moved to ${newStatus.replace("_", " ")}`);
 
       try {
         await api.updateTask(taskId, { status: newStatus }, simulateFailure);
       } catch {
         setTasks(previous);
-        setError("Failed to update task status. Change has been reverted.");
+        const msg = "Failed to update task status. Change has been reverted.";
+        setError(msg);
+        announce(msg);
       }
     },
     [tasks, simulateFailure]
@@ -57,13 +69,17 @@ export default function TaskBoard() {
   const handleDelete = useCallback(
     async (taskId: string) => {
       const previous = tasks;
+      const task = tasks.find((t) => t.id === taskId);
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      announce(`Task "${task?.title}" deleted`);
 
       try {
         await api.deleteTask(taskId, simulateFailure);
       } catch {
         setTasks(previous);
-        setError("Failed to delete task. It has been restored.");
+        const msg = "Failed to delete task. It has been restored.";
+        setError(msg);
+        announce(msg);
       }
     },
     [tasks, simulateFailure]
@@ -78,14 +94,22 @@ export default function TaskBoard() {
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center" role="status" aria-label="Loading tasks">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <span className="sr-only">Loading tasks...</span>
       </div>
     );
   }
 
   return (
     <div>
+      <div
+        ref={liveRegionRef}
+        className="sr-only"
+        aria-live="polite"
+        aria-atomic="true"
+      />
+
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <TaskForm onSubmit={handleCreate} />
         <FilterBar
@@ -105,7 +129,8 @@ export default function TaskBoard() {
           <span>{error}</span>
           <button
             onClick={() => setError(null)}
-            className="ml-4 font-medium hover:text-red-900"
+            className="ml-4 font-medium hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-400 rounded px-1"
+            aria-label="Dismiss error"
           >
             Dismiss
           </button>

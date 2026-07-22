@@ -19,13 +19,24 @@ export default function TaskCard({
   onStatusChange,
   onDelete,
 }: TaskCardProps) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault();
+      onDelete(task.id);
+    }
+  };
+
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <article
+      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-300"
+      aria-label={`Task: ${task.title}`}
+      onKeyDown={handleKeyDown}
+    >
       <div className="mb-2 flex items-start justify-between gap-2">
         <h3 className="font-medium text-gray-900">{task.title}</h3>
         <button
           onClick={() => onDelete(task.id)}
-          className="shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+          className="shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
           aria-label={`Delete task: ${task.title}`}
         >
           <svg
@@ -33,6 +44,7 @@ export default function TaskCard({
             viewBox="0 0 20 20"
             fill="currentColor"
             className="h-4 w-4"
+            aria-hidden="true"
           >
             <path
               fillRule="evenodd"
@@ -53,7 +65,7 @@ export default function TaskCard({
           onChange={(e) =>
             onStatusChange(task.id, e.target.value as TaskStatus)
           }
-          className="rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700"
+          className="rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
           aria-label={`Change status for: ${task.title}`}
         >
           {STATUS_OPTIONS.map((opt) => (
@@ -69,6 +81,6 @@ export default function TaskCard({
           </span>
         )}
       </div>
-    </div>
+    </article>
   );
 }

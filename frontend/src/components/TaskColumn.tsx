@@ -23,22 +23,28 @@ export default function TaskColumn({
   const config = STATUS_CONFIG[status];
 
   return (
-    <section className="flex min-h-[200px] flex-1 flex-col rounded-xl bg-gray-50 p-4">
-      <div className="mb-4 flex items-center gap-2">
+    <section
+      className="flex min-h-[200px] flex-1 flex-col rounded-xl bg-gray-50 p-4"
+      aria-label={`${config.label} column, ${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`}
+    >
+      <header className="mb-4 flex items-center gap-2">
         <h2 className={`rounded-full px-3 py-1 text-sm font-semibold ${config.color}`}>
           {config.label}
         </h2>
-        <span className="text-sm text-gray-400">{tasks.length}</span>
-      </div>
+        <span className="text-sm text-gray-400" aria-hidden="true">
+          {tasks.length}
+        </span>
+      </header>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3" role="list" aria-label={`${config.label} tasks`}>
         {tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onStatusChange={onStatusChange}
-            onDelete={onDelete}
-          />
+          <div role="listitem" key={task.id}>
+            <TaskCard
+              task={task}
+              onStatusChange={onStatusChange}
+              onDelete={onDelete}
+            />
+          </div>
         ))}
 
         {tasks.length === 0 && (
