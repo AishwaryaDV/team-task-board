@@ -1,3 +1,6 @@
+"use client";
+
+import { useDroppable } from "@dnd-kit/core";
 import { Task, TaskStatus, UpdateTaskInput } from "@/types/task";
 import TaskCard from "./TaskCard";
 
@@ -23,10 +26,14 @@ export default function TaskColumn({
   onDelete,
 }: TaskColumnProps) {
   const config = STATUS_CONFIG[status];
+  const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
     <section
-      className="flex min-h-[200px] flex-1 flex-col rounded-xl bg-gray-50 p-4"
+      ref={setNodeRef}
+      className={`flex min-h-[200px] flex-1 flex-col rounded-xl p-4 transition-colors ${
+        isOver ? "bg-blue-50 ring-2 ring-blue-300" : "bg-gray-50"
+      }`}
       aria-label={`${config.label} column, ${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`}
     >
       <header className="mb-4 flex items-center gap-2">

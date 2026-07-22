@@ -2,8 +2,18 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Task, TaskStatus, CreateTaskInput, UpdateTaskInput } from "@/types/task";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import * as api from "@/lib/api";
 import TaskColumn from "./TaskColumn";
+import TaskCard from "./TaskCard";
 import TaskForm from "./TaskForm";
 import FilterBar from "./FilterBar";
 import { useDebounce } from "@/lib/useDebounce";
@@ -17,8 +27,13 @@ export default function TaskBoard() {
   const [assigneeFilter, setAssigneeFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [simulateFailure, setSimulateFailure] = useState(false);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
   const liveRegionRef = useRef<HTMLDivElement>(null);
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
   const announce = (message: string) => {
     if (liveRegionRef.current) {
@@ -99,6 +114,25 @@ export default function TaskBoard() {
     [tasks, simulateFailure]
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find((t) => t.id === event.active.id);
+    setActiveTask(task ?? null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const newStatus = over.id as TaskStatus;
+
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task || task.status === newStatus) return;
+
+    handleStatusChange(taskId, newStatus);
+  };
+
   const filteredTasks = useMemo(() => {
     let result = tasks;
 
@@ -167,18 +201,37 @@ export default function TaskBoard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {STATUSES.map((status) => (
-          <TaskColumn
-            key={status}
-            status={status}
-            tasks={filteredTasks.filter((t) => t.status === status)}
-            onStatusChange={handleStatusChange}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {STATUSES.map((status) => (
+            <TaskColumn
+              key={status}
+              status={status}
+              tasks={filteredTasks.filter((t) => t.status === status)}
+              onStatusChange={handleStatusChange}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+
+        <DragOverlay>
+          {activeTask ? (
+            <div className="rotate-3 opacity-90">
+              <TaskCard
+                task={activeTask}
+                onStatusChange={() => {}}
+                onEdit={async () => {}}
+                onDelete={() => {}}
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useDraggable } from "@dnd-kit/core";
 import { Task, TaskStatus, UpdateTaskInput } from "@/types/task";
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
@@ -22,6 +23,13 @@ export default function TaskCard({
   onEdit,
   onDelete,
 }: TaskCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+  });
+  const style = transform
+    ? { transform: `translate(${transform.x}px, ${transform.y}px)` }
+    : undefined;
+
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
@@ -141,9 +149,13 @@ export default function TaskCard({
 
   return (
     <article
-      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-300"
+      ref={setNodeRef}
+      style={style}
+      className={`rounded-lg border border-gray-200 bg-white p-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-300 ${isDragging ? "opacity-50" : ""}`}
       aria-label={`Task: ${task.title}`}
       onKeyDown={handleKeyDown}
+      {...listeners}
+      {...attributes}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <h3 className="font-medium text-gray-900">{task.title}</h3>
