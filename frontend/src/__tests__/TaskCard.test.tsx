@@ -16,7 +16,7 @@ const mockTask: Task = {
 describe("TaskCard", () => {
   it("renders task title and description", () => {
     render(
-      <TaskCard task={mockTask} onStatusChange={vi.fn()} onDelete={vi.fn()} />
+      <TaskCard task={mockTask} onStatusChange={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />
     );
 
     expect(screen.getByText("Test Task")).toBeInTheDocument();
@@ -25,7 +25,7 @@ describe("TaskCard", () => {
 
   it("renders assignee badge", () => {
     render(
-      <TaskCard task={mockTask} onStatusChange={vi.fn()} onDelete={vi.fn()} />
+      <TaskCard task={mockTask} onStatusChange={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />
     );
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe("TaskCard", () => {
   it("hides description when empty", () => {
     const taskNoDesc = { ...mockTask, description: "" };
     render(
-      <TaskCard task={taskNoDesc} onStatusChange={vi.fn()} onDelete={vi.fn()} />
+      <TaskCard task={taskNoDesc} onStatusChange={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />
     );
 
     expect(screen.queryByText("A test description")).not.toBeInTheDocument();
@@ -43,7 +43,7 @@ describe("TaskCard", () => {
   it("calls onDelete when delete button is clicked", () => {
     const onDelete = vi.fn();
     render(
-      <TaskCard task={mockTask} onStatusChange={vi.fn()} onDelete={onDelete} />
+      <TaskCard task={mockTask} onStatusChange={vi.fn()} onEdit={vi.fn()} onDelete={onDelete} />
     );
 
     fireEvent.click(screen.getByLabelText("Delete task: Test Task"));
@@ -53,7 +53,7 @@ describe("TaskCard", () => {
   it("calls onStatusChange when status dropdown changes", () => {
     const onStatusChange = vi.fn();
     render(
-      <TaskCard task={mockTask} onStatusChange={onStatusChange} onDelete={vi.fn()} />
+      <TaskCard task={mockTask} onStatusChange={onStatusChange} onEdit={vi.fn()} onDelete={vi.fn()} />
     );
 
     fireEvent.change(screen.getByLabelText("Change status for: Test Task"), {
@@ -64,7 +64,7 @@ describe("TaskCard", () => {
 
   it("has correct aria-label on the article element", () => {
     render(
-      <TaskCard task={mockTask} onStatusChange={vi.fn()} onDelete={vi.fn()} />
+      <TaskCard task={mockTask} onStatusChange={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />
     );
 
     expect(screen.getByRole("article")).toHaveAttribute(
