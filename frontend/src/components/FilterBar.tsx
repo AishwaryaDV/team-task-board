@@ -6,6 +6,8 @@ interface FilterBarProps {
   tasks: Task[];
   selectedAssignee: string;
   onAssigneeChange: (assignee: string) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   simulateFailure: boolean;
   onSimulateFailureChange: (value: boolean) => void;
 }
@@ -14,6 +16,8 @@ export default function FilterBar({
   tasks,
   selectedAssignee,
   onAssigneeChange,
+  searchQuery,
+  onSearchChange,
   simulateFailure,
   onSimulateFailureChange,
 }: FilterBarProps) {
@@ -24,8 +28,22 @@ export default function FilterBar({
   return (
     <div className="flex flex-wrap items-center gap-4">
       <div className="flex items-center gap-2">
+        <label htmlFor="search" className="text-sm font-medium text-gray-700">
+          Search:
+        </label>
+        <input
+          id="search"
+          type="search"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Filter by title..."
+          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
         <label htmlFor="assignee-filter" className="text-sm font-medium text-gray-700">
-          Filter by assignee:
+          Assignee:
         </label>
         <select
           id="assignee-filter"

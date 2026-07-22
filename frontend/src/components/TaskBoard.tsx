@@ -6,6 +6,7 @@ import * as api from "@/lib/api";
 import TaskColumn from "./TaskColumn";
 import TaskForm from "./TaskForm";
 import FilterBar from "./FilterBar";
+import { useDebounce } from "@/lib/useDebounce";
 
 const STATUSES: TaskStatus[] = ["todo", "in_progress", "done"];
 
@@ -14,8 +15,10 @@ export default function TaskBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [assigneeFilter, setAssigneeFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [simulateFailure, setSimulateFailure] = useState(false);
   const liveRegionRef = useRef<HTMLDivElement>(null);
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   const announce = (message: string) => {
     if (liveRegionRef.current) {
@@ -86,11 +89,25 @@ export default function TaskBoard() {
   );
 
   const filteredTasks = useMemo(() => {
-    if (!assigneeFilter) return tasks;
-    return tasks.filter(
-      (t) => t.assignee.toLowerCase() === assigneeFilter.toLowerCase()
-    );
-  }, [tasks, assigneeFilter]);
+    let result = tasks;
+
+    if (assigneeFilter) {
+      result = result.filter(
+        (t) => t.assignee.toLowerCase() === assigneeFilter.toLowerCase()
+      );
+    }
+
+    if (debouncedSearch) {
+      const query = debouncedSearch.toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.title.toLowerCase().includes(query) ||
+          t.description.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [tasks, assigneeFilter, debouncedSearch]);
 
   if (loading) {
     return (
@@ -116,6 +133,8 @@ export default function TaskBoard() {
           tasks={tasks}
           selectedAssignee={assigneeFilter}
           onAssigneeChange={setAssigneeFilter}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           simulateFailure={simulateFailure}
           onSimulateFailureChange={setSimulateFailure}
         />
